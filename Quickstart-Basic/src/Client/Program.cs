@@ -51,6 +51,8 @@ namespace Client
                 var content = await response.Content.ReadAsStringAsync();
                 Console.WriteLine(JsonConvert.DeserializeObject(content));
             }
+
+            Console.ReadLine();
         }
     }
 }
