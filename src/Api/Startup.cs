@@ -19,6 +19,9 @@ namespace Api
         {
             services.AddControllers();
 
+            services.AddAuthorization(options => options.AddPolicy("ApiScope", policy =>
+                policy.RequireAuthenticatedUser().RequireClaim("scope", "api1")));
+
             services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
                 {
@@ -44,7 +47,7 @@ namespace Api
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers().RequireAuthorization("ApiScope"); });
         }
     }
 }
