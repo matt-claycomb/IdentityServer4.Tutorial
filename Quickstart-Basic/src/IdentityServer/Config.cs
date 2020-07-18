@@ -23,6 +23,8 @@ namespace IdentityServer
                 new ApiScope("api1", "My Test API"), 
             };
 
+        public static IEnumerable<ApiResource> Apis => new ApiResource[]{};
+
         public static IEnumerable<Client> Clients =>
             new Client[]
             {
