@@ -41,8 +41,6 @@ namespace IdentityServer
                         NameClaimType = "name",
                         RoleClaimType = "role"
                     };
-
-                    options.Scope.Add("api1");
                 });
 
             var builder = services.AddIdentityServer()
