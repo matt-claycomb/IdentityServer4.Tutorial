@@ -11,7 +11,8 @@ namespace Client
     {
         static async Task Main()
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Sleeping for 15 seconds...");
+            await Task.Delay(15000);
 
             var client = new HttpClient();
             var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5001");
@@ -24,7 +25,6 @@ namespace Client
             var tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = disco.TokenEndpoint,
-
                 ClientId = "client",
                 ClientSecret = "secret",
                 Scope = "api1"

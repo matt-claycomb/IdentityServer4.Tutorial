@@ -38,7 +38,12 @@ namespace IdentityServer
                     // secret for authentication
                     ClientSecrets =
                     {
-                        new Secret("secret".Sha256())
+                        new Secret("secret".Sha256()),
+                        new Secret
+                        {
+                            Type = IdentityServerConstants.SecretTypes.JsonWebKey,
+                            Value = "{\"kty\":\"RSA\",\"e\":\"AQAB\",\"use\":\"sig\",\"alg\":\"RS256\",\"n\":\"yozwJWsQORdiTWLAr_tO9j8XJTQllBQpHfeEu4n1c99nhSrOT5qIci3A4yBXwwbLrn8Ya3Kn87Of5hQ-QgpMRGDlMm0oy599umpLgB-7mUng50HKfe_GPQg0Vna9EValYK5POUxhnhpY-94Xuo3XD99uJEEHinozSfw8P1IIpsrjLWTEYCIKnpvsVrVV0ge08b_5Z2zC7SHrXEW5r__NNmjB7lOCXW2yOrOqZxe9hYOaBNcSVX2_2sSSNQxLMaW7gmFq9f2W3hhVKWjM0PnHdXfKkbTGVkUvfHjpLydqkBu7BT1Lxuw2dU2lelsjNdXAHWJq1j4SwxLDhEuMF55faQ\"}"
+                        }
                     },
 
                     // scopes that client has access to
