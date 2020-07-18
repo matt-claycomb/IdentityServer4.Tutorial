@@ -42,6 +42,8 @@ namespace MVCClient
                         options.ClientSecret = "secret";
                         options.ResponseType = "code";
 
+                        options.Scope.Add("api1");
+
                         options.SaveTokens = true;
                     });
         }
