@@ -19,9 +19,12 @@ namespace ClientAsymmetricKey
     {
         static async Task Main()
         {
-            Console.WriteLine("Sleeping for 30 seconds...");
-            await Task.Delay(30000);
-            Console.WriteLine("Done Waiting!");
+            var keys = Keys;
+
+            Console.WriteLine($"Public Key: {JsonConvert.SerializeObject(keys.Item2)}");
+
+            Console.WriteLine("Press enter to continue.");
+            Console.ReadLine();
 
             var client = new HttpClient();
             var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5001");
@@ -40,8 +43,7 @@ namespace ClientAsymmetricKey
                 ClientAssertion = new ClientAssertion
                 {
                     Type = OidcConstants.ClientAssertionTypes.JwtBearer,
-                    Value = CreateClientToken("client", disco.TokenEndpoint)
-                    //TODO Generate Value
+                    Value = CreateClientToken("client", disco.TokenEndpoint, keys)
                 }
             });
 
@@ -71,11 +73,40 @@ namespace ClientAsymmetricKey
             Console.ReadLine();
         }
 
-        private static string CreateClientToken(string clientId, string audience)
+        private static Tuple<JsonWebKey, JsonWebKey> Keys
         {
-            string jwkPair =
-                "{\"p\":\"5fRQcTE_64HPa6jE863wzKmeFDJN4FbwNHBCdFmrFvo9Swq6HBGkOMgfKeuRlOA12CG9MadDDNjB_xqGAYWNPoYvw9Neh1AZS0SM578DdhFbZfHJL8gQfqQcrX1dkgis_8aj-oySykwsIPUbVkQTkKZuIEUylpoILeOcq_io-1c\",\"kty\":\"RSA\",\"q\":\"4X4IAwL-STBb6P21dEkxw0o9LUtb2qayiLxpbH2CJYdHUTXBhjdcp5ym49wxLdONrMEtGrESH5XGdC791AXM2UrExJ3Xk8Vslc-29A0agg1eaCuS_7IfpqPCSAzFfEHeYkKd30x8FnJpvcheKr4tBTzjbUS4TPcPDivSjmYNgz8\",\"d\":\"l-BoLVaDOpvbHPWgUBSbV69k9oOMbeVUE2FGiKzgfHsWj1bSjgPsrdi62lOlGtqcnYI1WFQHtYeJrSaerDw2hcs18MLDJTO5Pa94X2Dr9PvdhOnjIN1KgvcE75RnHnoe1Ui-pNMuGzPcZzdYCY1TplY9qzeLpP0OOjrFHiGv1QfVIEMSVmanQHwIcZ8uPMU3IJ2Afeq8p4twoUa1v5bb5Jdx3VGSdx5FlShvGVXKIL7r2Z1FtBbZu_20nZ2bwg7TdjWUAEXn_jQ6kKQ7iQ4dAQjCJKdMr0ejeF-7vo9vdMXQw1j-S4J8Q963SWfSjOUbXaDJnvJ83_if0DNnn8NW5Q\",\"e\":\"AQAB\",\"use\":\"sig\",\"qi\":\"0sLeItl7eK8FRsSSig0aIBa6Xw_Whq6kKn6iPYEv1zTHjfFsfg5VgkTQDCrcj9YMh7-P5tIz4_PyGDzC8Pllxs4CGSRDJWCEKcKOGz6aPsQ4Bo-qDMB-7cqoKH-opAnf2E6qkIaEu61oslFgCZ8RYbxv3odASUwb6g9LuhGQ76E\",\"dp\":\"yXWppAFJxsILPn61Tedtt2BCpd8Maya_erF_BwAn7BF_8WaMdlreTQDGjKtc99kWUyv73Kx1CaQ9EYnjLSIcBFL7NczQXCvIfTCpYb7vAVljgYS6han5CXotxbC3cWE4bz1QHAlb8O-bGaSjNoidu3STtqHpGBgKYmmusNtA8DE\",\"alg\":\"RS256\",\"dq\":\"biu5ll8cBn5OKaPryAkK-zOGeF7dXhMcH5qOl6cqs1NJEPCGwSDDcFElaSboEE_QZJttgiEJjc0LzTA4bCL5VyEkyjukXFqVFw0Jgmv0i54khhjkFXHd7PkNr04uHuu_z5pkr_kal40HBOaku5V3QZviMjzlHxWGkZHvqgtKhtk\",\"n\":\"yozwJWsQORdiTWLAr_tO9j8XJTQllBQpHfeEu4n1c99nhSrOT5qIci3A4yBXwwbLrn8Ya3Kn87Of5hQ-QgpMRGDlMm0oy599umpLgB-7mUng50HKfe_GPQg0Vna9EValYK5POUxhnhpY-94Xuo3XD99uJEEHinozSfw8P1IIpsrjLWTEYCIKnpvsVrVV0ge08b_5Z2zC7SHrXEW5r__NNmjB7lOCXW2yOrOqZxe9hYOaBNcSVX2_2sSSNQxLMaW7gmFq9f2W3hhVKWjM0PnHdXfKkbTGVkUvfHjpLydqkBu7BT1Lxuw2dU2lelsjNdXAHWJq1j4SwxLDhEuMF55faQ\"}";
+            get
+            {
+                JsonWebKey jwkPrivate;
+                JsonWebKey jwkPublic;
 
+                var privateKeyFile = "private.json";
+                var publicKeyFile = "public.json";
+                try {
+                    jwkPrivate = new JsonWebKey(File.ReadAllText(privateKeyFile));
+                    jwkPublic = new JsonWebKey(File.ReadAllText(publicKeyFile));
+                }
+                catch
+                {
+                    if (File.Exists(privateKeyFile)) File.Delete(privateKeyFile);
+                    if (File.Exists(publicKeyFile)) File.Delete(publicKeyFile);
+
+                    var rsaPrivateKey = RSA.Create(4096);
+                    var rsaPublicKey = RSA.Create();
+                    rsaPublicKey.ImportRSAPublicKey(rsaPrivateKey.ExportRSAPublicKey(), out _);
+                    jwkPrivate = JsonWebKeyConverter.ConvertFromRSASecurityKey(new RsaSecurityKey(rsaPrivateKey));
+                    jwkPublic = JsonWebKeyConverter.ConvertFromRSASecurityKey(new RsaSecurityKey(rsaPublicKey));
+
+                    File.WriteAllText(privateKeyFile, JsonConvert.SerializeObject(jwkPrivate));
+                    File.WriteAllText(publicKeyFile, JsonConvert.SerializeObject(jwkPublic));
+                }
+
+                return new Tuple<JsonWebKey, JsonWebKey>(jwkPrivate, jwkPublic);
+            }
+        }
+
+        private static string CreateClientToken(string clientId, string audience, Tuple<JsonWebKey, JsonWebKey> keys)
+        {
             var now = DateTime.UtcNow;
 
             var token = new JwtSecurityToken(
@@ -90,7 +121,7 @@ namespace ClientAsymmetricKey
                 now,
                 now.AddMinutes(1),
                 new SigningCredentials(
-                    new JsonWebKey(jwkPair),
+                    keys.Item1,
                     SecurityAlgorithms.RsaSha256
                 )
             );

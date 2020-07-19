@@ -11,9 +11,8 @@ namespace Client
     {
         static async Task Main()
         {
-            Console.WriteLine("Sleeping for 30 seconds...");
-            await Task.Delay(30000);
-            Console.WriteLine("Done Waiting!");
+            Console.WriteLine("Press enter to continue.");
+            Console.ReadLine();
 
             var client = new HttpClient();
             var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5001");
