@@ -6,6 +6,8 @@ using System.Reflection;
 using IdentityServer4;
 using IdentityServer4.EntityFramework.DbContexts;
 using IdentityServer4.EntityFramework.Mappers;
+using IdentityServer4.Services;
+using IdentityServer4.Validation;
 using IdentityServerHost.Quickstart.UI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -64,7 +66,9 @@ namespace IdentityServer
                 {
                     options.ConfigureDbContext = b => b.UseSqlServer(connectionString,
                         sql => sql.MigrationsAssembly(migrationsAssembly));
-                }).AddDeveloperSigningCredential();
+                })
+                .AddJwtBearerClientAuthentication()
+                .AddDeveloperSigningCredential();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -101,6 +105,9 @@ namespace IdentityServer
             context.SaveChanges();
 
             foreach (var resource in Config.Apis) context.ApiResources.Add(resource.ToEntity());
+            context.SaveChanges();
+
+            foreach (var scope in Config.ApiScopes) context.ApiScopes.Add(scope.ToEntity());
             context.SaveChanges();
         }
     }
